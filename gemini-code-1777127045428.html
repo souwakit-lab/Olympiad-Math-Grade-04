@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敏達數學·閱讀(四年級挑戰)</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #FF9800;
+            --accent-red: #FF5722;
+            --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg-gradient); margin: 0; padding: 15px; color: #333; line-height: 1.6; min-height: 100vh; }
+        .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 25px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        
+        h1 { color: var(--accent-red); font-size: 26px; text-align: center; margin-bottom: 25px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        
+        /* 視圖切換邏輯 */
+        #menu-view { display: block; animation: fadeIn 0.5s ease-out; }
+        .exercise-section { display: none; animation: slideIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 目錄網格樣式 */
+        .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .toc-item { 
+            background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 18px; padding: 15px; 
+            text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #495057; font-weight: bold;
+        }
+        .toc-item:hover { transform: translateY(-5px); border-color: var(--primary-orange); background: #fffaf0; box-shadow: 0 8px 15px rgba(255,152,0,0.2); }
+        .toc-icon { font-size: 28px; margin-bottom: 8px; }
+        .toc-text { font-size: 15px; }
+
+        /* 頂部返回按鈕 */
+        .top-back-btn { display: inline-flex; align-items: center; background: none; border: none; color: #757575; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; padding: 5px 0; transition: color 0.2s; }
+        .top-back-btn:hover { color: var(--accent-red); }
+
+        .section-header { font-size: 20px; color: #3F51B5; text-align: center; margin-bottom: 20px; padding: 10px; background: #E8EAF6; border-radius: 10px; font-weight: bold; }
+        .q-separator { border: 0; height: 3px; background: #eee; margin: 30px 0; border-radius: 2px; }
+
+        /* 圖片佔位符樣式 */
+        .content-img { max-width: 100%; height: auto; border-radius: 10px; margin: 15px auto; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #FFEFD5; }
+
+        /* 卡片共用樣式 */
+        .card { border-radius: 15px; padding: 15px 15px 30px 15px; margin-bottom: 18px; position: relative; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h3 { margin: 0 0 10px 0; font-size: 17px; display: flex; align-items: center; }
+        .title-icon { font-size: 22px; margin-right: 8px; }
+        p { margin-top: 0; margin-bottom: 10px; }
+        
+        /* 算式排版專用樣式 (帶有單位的高亮) */
+        .math-step {
+            background: #fdfbf7;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.8;
+            font-size: 15px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            overflow-x: auto;
+        }
+        
+        /* 互動效果 */
+        .hidden-card { display: none; opacity: 0; }
+        .show { display: block; animation: fadeInUp 0.5s forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .clickable-step { cursor: pointer; border: 2px dashed #ccc; }
+        .clickable-step:hover { border-color: var(--accent-red); background: #fffcf0; }
+        .step-unlocked { border: 2px solid transparent !important; cursor: default; }
+
+        .click-hint { position: absolute; bottom: 10px; right: 15px; background: var(--accent-red); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        /* 卡片配色 */
+        .card-question { background: #FFF3E0; border-left: 8px solid #FF9800; padding-bottom: 15px; }
+        .intro-prompt { background: #FFF9C4; border-left: 8px solid #FFC107; }
+        .step-one { background: #E3F2FD; border-left: 8px solid #2196F3; }
+        .final-answer { background: #E8F5E9; border-left: 8px solid #4CAF50; padding-bottom: 15px; }
+
+        .finish-btn { display: block; text-align: center; margin: 25px auto 0; padding: 12px 30px; background: var(--primary-orange); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255,152,0,0.3); transition: transform 0.2s, background 0.2s; }
+        .finish-btn:hover { background: var(--accent-red); transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div id="menu-view">
+            <h1>🏆 敏達數學·閱讀 🏆</h1>
+            <h1>四年級挑戰</h1>
+            <p style="text-align:center; color:#666; font-size:14px; margin-bottom:20px;">選擇一個單元，進入挑戰 👇</p>
+            
+            <div class="toc-grid">
+                <div class="toc-item" onclick="startExercise('c1')"><span class="toc-icon">🧩</span><span class="toc-text">1. 圖形填數</span></div>
+                <div class="toc-item" onclick="startExercise('c2')"><span class="toc-icon">📏</span><span class="toc-text">2. 圖形的周長</span></div>
+                <div class="toc-item" onclick="startExercise('c3')"><span class="toc-icon">🧮</span><span class="toc-text">3. 乘除法巧算</span></div>
+                <div class="toc-item" onclick="startExercise('c4')"><span class="toc-icon">🔁</span><span class="toc-text">4. 週期問題</span></div>
+                <div class="toc-item" onclick="startExercise('c5')"><span class="toc-icon">🔮</span><span class="toc-text">5. 定義新運算</span></div>
+                <div class="toc-item" onclick="startExercise('c6')"><span class="toc-icon">🏃</span><span class="toc-text">6. 行程問題</span></div>
+                <div class="toc-item" onclick="startExercise('c7')"><span class="toc-icon">⛴️</span><span class="toc-text">7. 行船問題</span></div>
+                <div class="toc-item" onclick="startExercise('c8')"><span class="toc-icon">⚖️</span><span class="toc-text">8. 盈虧問題</span></div>
+                <div class="toc-item" onclick="startExercise('c9')"><span class="toc-icon">🐔</span><span class="toc-text">9. 雞兔同籠</span></div>
+            </div>
+        </div>
+
+        <div id="c1" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第一關：圖形填數</div>
+            
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>觀察行或列中數之間的關係，在空白處填上適當的數。</p>
+                <img src="grid_pattern.png" alt="圖形填數規律" class="content-img" onerror="this.style.display='none'">
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c1-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c1-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>觀察第一幅圖中第一行與第二行數之間的關係，發現：17 ＝ 9 ＋ 8 ， 16 ＝ 9 ＋ 7 。因為 4 ＋ 12 ＝ 16 ，所以第一幅空白處應填 16 。</p>
+                <p>由第二幅圖中第一行與第二行數之間的關係可知：32 ＝（ 11 ＋ 5 ） × 2 ，34 ＝（ 8 ＋ 9 ） × 2 。因為（ 13 ＋ 7 ） × 2 ＝ 40 ，所以第二幅空白處應填 40 。</p>
+                <p>第三幅圖稍有難度，不容易看出來，但如果先從列入手，再看行就會發現：</p>
+                <div class="math-step">
+                $$ \text{列的規律：第一列中的數從上到下依次乘 2、3、4} $$
+                $$ 7 \times 2 = 14 $$
+                $$ 4 \times 3 = 12 $$
+                $$ 6 \times 4 = 24 $$
+                $$ \text{行的規律：每行中乘幾，就用第二個數減幾。} $$
+                $$ 14 - 2 = 12 $$
+                $$ 12 - 3 = 9 $$
+                $$ 24 - 4 = 20 $$
+                </div>
+                <p><strong>答：第三幅圖的空白處應填 20。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>樂兒在玩九宮格填數遊戲，她發現這些數字藏著一個秘密：<br>
+                第一行是：5，15，3<br>
+                第二行是：8，32，4<br>
+                第三行是：7，空格，6<br>
+                請問這個空格應該填入多少？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c1-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c1-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>觀察第一行和第二行的三個數字，找找看它們之間的乘除法關係。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{第一行的規律：} 15 \div 5 = 3 \text{，也就是 } 5 \times 3 = 15 $$
+                $$ \text{第二行的規律：} 32 \div 8 = 4 \text{，也就是 } 8 \times 4 = 32 $$
+                </div>
+                <p>我們發現規律是：「第一個數 × 第三個數 = 中間的數」。利用這個規律來算第三行：</p>
+                <div class="math-step">
+                $$ 7 \times 6 = 42 $$
+                </div>
+                <p><strong>答：空格處應填 42。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c2" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第二關：圖形的周長</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>求下圖中圖形的周長：</p>
+                <img src="perimeter_shape.png" alt="圖形的周長" class="content-img" onerror="this.style.display='none'">
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c2-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c2-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>求這個圖形的周長就是求它所有邊長的總和，但是它不是一個長方形，那麼我們需要通過平移的方法把它轉化成為長方形。</p>
+                <p><strong>解答：</strong>將內側的線段分別向外平移後，整個圖形就變成了一個長 10cm、寬 8cm 的完整長方形。</p>
+                <div class="math-step">
+                $$ (10 + 8) \times 2 $$
+                $$ = 18 \times 2 $$
+                $$ = 36 \text{ (cm)} $$
+                </div>
+                <p><strong>答：此圖形的周長是 36 cm。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>子安的家有一個 L 形的小花園，如下圖所示（標示最長邊為 15 公尺，最寬邊為 12 公尺）。為了防止小狗跑進去，子安想在花園的周圍圍上一圈柵欄，請問需要多長的柵欄？</p>
+                <img src="garden_perimeter.png" alt="花園的周長" class="content-img" onerror="this.style.display='none'">
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c2-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c2-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>L 形花園有許多彎折的邊，但我們不用把每一小段都算出來。利用「平移法」，將內凹的兩條線段分別向外側平移補齊。</p>
+                <p><strong>解答：</strong><br>
+                平移後，L 形的周長就完全等於一個長 15 公尺、寬 12 公尺的大長方形的周長。</p>
+                <div class="math-step">
+                $$ \text{周長：} (15 + 12) \times 2 $$
+                $$ = 27 \times 2 $$
+                $$ = 54 \text{ (公尺)} $$
+                </div>
+                <p><strong>答：需要 54 公尺的柵欄。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c3" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第三關：整數乘除法的巧算</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>求 $125 \times 64 \times 5 \times 25$ ＝？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c3-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c3-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>首先觀察四個因數，發現有 125，那麼自然就會想到如果有個 8，那就完美了。原來有 64 這個數包含 8 這個因數。又發現有 25，那麼就又需要有個 4，64 中也包含因數 4，所以只需要將 64 分解即可。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ 125 \times 64 \times 5 \times 25 $$
+                $$ = 125 \times (8 \times 4 \times 2) \times 5 \times 25 $$
+                $$ = (125 \times 8) \times (25 \times 4) \times (5 \times 2) $$
+                $$ = 1000 \times 100 \times 10 $$
+                $$ = 1000000 $$
+                </div>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>少傑在計算一道數學題：$25 \times 32 \times 125 \times 2 = \text{？}$ 請你用巧算的方法幫他快速算出答案。</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c3-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c3-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>找找看數字的「好朋友」。25 的好朋友是 4，125 的好朋友是 8。我們可以把中間的 32 拆開來，分給它們。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{把 } 32 \text{ 拆解為 } 4 \times 8 \text{：} $$
+                $$ 25 \times (4 \times 8) \times 125 \times 2 $$
+                $$ = (25 \times 4) \times (125 \times 8) \times 2 $$
+                $$ = 100 \times 1000 \times 2 $$
+                $$ = 200000 $$
+                </div>
+                <p><strong>答：答案是 200000。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c4" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第四關：週期問題</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>有一列數：2，3，6，8，8，……從第三個數起，每個數都是前兩個數乘積的個位數字，那麼這列數中第 80 個數應是（ ）。</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c4-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c4-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>根據已知條件可以判斷這是一個週期問題。我們需要繼續計算下去觀察週期性。這組數列就是：2, 3, 6, 8, 8, 4, 2, 8, 6, 8, 8, 4, 2, 8, 6, 8, 8...<br>
+                通過觀察，我們發現它的週期是從 6 開始的，一共 6 個數字為一組週期：(6, 8, 8, 4, 2, 8)。</p>
+                <p><strong>解答：</strong><br>
+                前 2 個數字不參與循環，所以扣除前兩個數：</p>
+                <div class="math-step">
+                $$ (80 - 2) \div 6 $$
+                $$ = 78 \div 6 $$
+                $$ = 13 \text{ (組)} $$
+                </div>
+                <p>經過計算得知並沒有餘數，所以第 80 個數正好是週期中的最後一個數字：8。<br>
+                <strong>答：第 80 個數應是 8。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>佩文在紙上畫了一串圖形：★、●、▲、■、★、●、▲、■…… 如果她一直按照這個規律畫下去，請問第 55 個圖形是什麼？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c4-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c4-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>仔細觀察圖形的排列，可以發現它們是每 4 個圖形 (★、●、▲、■) 不斷重複的一個週期。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{用總數除以一個週期的數量：} $$
+                $$ 55 \div 4 = 13 \text{ (組)} \dots \text{餘 } 3 \text{ (個)} $$
+                </div>
+                <p>這表示經過了 13 個完整的週期後，還會再多出 3 個圖形。所以第 55 個圖形，就會是週期裡面的第 3 個圖形。</p>
+                <p><strong>答：第 55 個圖形是 ▲。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c5" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第五關：定義新運算</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>如果 $A \# B = A \times B + A + B$，且 $(A \# 2) \# 1 = 29$，那麼 $A =$（ ）。</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c5-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c5-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>這是一題典型的「定義新運算」，我們不用解複雜的方程，可以使用「逆推法」。我們把括號裡的 $(A \# 2)$ 當作一個大框框 $\square$。</p>
+                <p><strong>解答：</strong><br>
+                題目變成：$\square \# 1 = 29$。<br>
+                根據新規則：</p>
+                <div class="math-step">
+                $$ \square \times 1 + \square + 1 = 29 $$
+                $$ \square + \square + 1 = 29 $$
+                $$ 2 \times \square = 28 $$
+                $$ \square = 14 $$
+                </div>
+                <p>現在我們知道 $A \# 2 = 14$ 了。再根據規則展開：</p>
+                <div class="math-step">
+                $$ A \times 2 + A + 2 = 14 $$
+                $$ 3 \times A + 2 = 14 $$
+                $$ 3 \times A = 12 $$
+                $$ A = 4 $$
+                </div>
+                <p><strong>答：$A$ 等於 4。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>樂兒發明了一個新符號「@」，規定：甲 @ 乙 = 甲 × 3 - 乙。如果 $5 @ (4 @ \text{子安}) = 11$，請問「子安」代表的數字是多少？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c5-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c5-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>這題一樣利用「逆推法」，從最外層的運算開始往回推算。</p>
+                <p><strong>解答：</strong><br>
+                先把括號 $(4 @ \text{子安})$ 當作一個整體框框 $\square$。<br>
+                原式變成 $5 @ \square = 11$。<br>
+                依照規則展開：</p>
+                <div class="math-step">
+                $$ 5 \times 3 - \square = 11 $$
+                $$ 15 - \square = 11 $$
+                $$ \text{所以，} \square = 4 $$
+                </div>
+                <p>這表示括號裡面的值是 4，也就是 $4 @ \text{子安} = 4$。<br>
+                再次依照規則展開：</p>
+                <div class="math-step">
+                $$ 4 \times 3 - \text{子安} = 4 $$
+                $$ 12 - \text{子安} = 4 $$
+                $$ \text{子安} = 8 $$
+                </div>
+                <p><strong>答：「子安」代表的數字是 8。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c6" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第六關：行程問題</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>甲、乙兩人同時沿著同一條路相向而行，甲的速率是乙的 3 倍，已知甲上午八時三十分經過文華文具店門口，乙上午十時三十分經過文華文具店門口，那麼甲、乙兩人（ ）時（ ）分在途中相遇。</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c6-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c6-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>相遇問題求時間的公式是：相遇時間＝總路程 ÷ 速度和。<br>
+                根據題意，甲從 8:30 走到文具店，乙從同一地點走到文具店卻是 10:30。代表他們出發時兩人之間的距離，正好等於乙走 2 小時（10:30 - 8:30）的路程！<br>
+                為了不使用代數，我們用「份數」來解：假設乙每小時走 1 份路程，因為甲的速率是乙的 3 倍，所以甲每小時走 3 份路程。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{兩人相距的總路程 = 乙走 2 小時的路程：} $$
+                $$ 1 \times 2 = 2 \text{ (份)} $$
+                <br>
+                $$ \text{兩人的速度和（每小時共走）：} $$
+                $$ 1 + 3 = 4 \text{ (份)} $$
+                <br>
+                $$ \text{相遇需要的時間：} $$
+                $$ 2 \div 4 = 0.5 \text{ (小時) = 30 分鐘} $$
+                </div>
+                <p>從上午 8 時 30 分開始經過 30 分鐘相遇：<br>
+                8 時 30 分 ＋ 30 分 ＝ 9 時 0 分。<br>
+                <strong>答：甲、乙兩人 9 時 0 分在途中相遇。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>少傑和佩文從一條筆直道路的兩端同時出發、相向而行。少傑的步行速度是佩文的 2 倍。如果他們一開始相距 1800 公尺，請問當他們相遇時，少傑一共走了多少公尺？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c6-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c6-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>因為兩人是同時出發，經過的時間是一樣的。在時間相同的情況下，速度比較快的人走的路程就會比較多。速度是幾倍，走的路程就是幾倍！</p>
+                <p><strong>解答：</strong><br>
+                因為少傑的速度是佩文的 2 倍，所以相遇時少傑走的路程也是佩文的 2 倍。<br>
+                我們可以把這 1800 公尺的總路程分成好幾份：佩文走 1 份，少傑走 2 份。</p>
+                <div class="math-step">
+                $$ \text{總共的份數：} 1 + 2 = 3 \text{ (份)} $$
+                <br>
+                $$ \text{每一份的路程（佩文走的）：} $$
+                $$ 1800 \div 3 = 600 \text{ (公尺)} $$
+                <br>
+                $$ \text{少傑走的路程（佔了 2 份）：} $$
+                $$ 600 \times 2 = 1200 \text{ (公尺)} $$
+                </div>
+                <p><strong>答：少傑走了 1200 公尺。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c7" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第七關：行船問題</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>“和平”號輪船在靜水中的速度是每小時 15 公里，逆水航行 11 小時，行了 88 公里。那麼“和平”號輪船返回原地需要多少小時？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c7-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c7-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>在解答行船問題時需要特別關注輪船在靜水的速度，以及水速。通過“逆水航行 11 小時，行了 88 公里”，可以先計算出逆水速度，進而求出水流速度與回程的順水速度。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{逆水速度：} $$
+                $$ 88 \div 11 = 8 \text{ (公里/小時)} $$
+                <br>
+                $$ \text{水流速度（靜水速度 - 逆水速度）：} $$
+                $$ 15 - 8 = 7 \text{ (公里/小時)} $$
+                <br>
+                $$ \text{回程是順水，順水速度（靜水速度 + 水流速度）：} $$
+                $$ 15 + 7 = 22 \text{ (公里/小時)} $$
+                <br>
+                $$ \text{回程需要的時間：} $$
+                $$ 88 \div 22 = 4 \text{ (小時)} $$
+                </div>
+                <p><strong>答：“和平”號輪船返回原地需要 4 小時。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>子安駕駛一艘遙控小船在小河中測試。這艘船在靜水中的速度是每分鐘 50 公尺。它順水航行了 4 分鐘，一共走了 240 公尺。請問這艘船如果原路逆水返回起點，需要多少分鐘？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c7-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c7-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>和上一題的觀念一樣，先利用總路程和時間求出「順水速度」，再利用靜水速度推算出「水流速度」，最後算出「逆水速度」。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{順水速度：} $$
+                $$ 240 \div 4 = 60 \text{ (公尺/分鐘)} $$
+                <br>
+                $$ \text{水流速度（順水速度 - 靜水速度）：} $$
+                $$ 60 - 50 = 10 \text{ (公尺/分鐘)} $$
+                <br>
+                $$ \text{逆水速度（靜水速度 - 水流速度）：} $$
+                $$ 50 - 10 = 40 \text{ (公尺/分鐘)} $$
+                <br>
+                $$ \text{返回需要的時間：} $$
+                $$ 240 \div 40 = 6 \text{ (分鐘)} $$
+                </div>
+                <p><strong>答：原路逆水返回需要 6 分鐘。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c8" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第八關：盈虧問題</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>大學某系新生分配宿舍，每間房住 6 人，則會空出 3 間房；每間房住 4 人，則會多出 24 人。那麼宿舍有多少間？新生有多少人？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c8-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c8-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>這是典型的盈虧問題，我們可以利用以下解題路徑：<br>
+                份數（房間數）＝（盈總數 ＋ 虧總數） ÷ 兩次分配的差。<br>
+                根據“每間房住 6 人，則會空出 3 間房”可知少 3 間房，也就是少了 $6 \times 3 = 18$ 人（虧）。根據“每間房住 4 人，則會多出 24 人”可知多 24 人（盈）。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{房間數量：} $$
+                $$ (24 + 6 \times 3) \div (6 - 4) $$
+                $$ = (24 + 18) \div 2 $$
+                $$ = 42 \div 2 = 21 \text{ (間)} $$
+                <br>
+                $$ \text{新生數量（代入住 4 人的情況）：} $$
+                $$ 4 \times 21 + 24 $$
+                $$ = 84 + 24 = 108 \text{ (人)} $$
+                </div>
+                <p><strong>答：宿舍有 21 間，新生有 108 人。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>樂兒買了一大包糖果分給班上的好朋友。如果每人分 5 顆，會剩下 12 顆；如果每人分 8 顆，就會不夠 15 顆。請問樂兒總共有幾個好朋友？糖果總共有幾顆？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c8-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c8-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>這一樣是盈虧問題。一次剩下（盈）12 顆，一次不夠（虧）15 顆。兩次分配方式，每人分到的糖果數量差了幾顆呢？這個差額累積起來就造成了總數量的盈虧差。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{每個人兩次分配的數量差：} $$
+                $$ 8 - 5 = 3 \text{ (顆)} $$
+                <br>
+                $$ \text{總盈虧數量的差距：} $$
+                $$ 12 + 15 = 27 \text{ (顆)} $$
+                <br>
+                $$ \text{好朋友的人數（份數）：} $$
+                $$ 27 \div 3 = 9 \text{ (人)} $$
+                <br>
+                $$ \text{糖果總數（代入分 5 顆的情況）：} $$
+                $$ 9 \times 5 + 12 = 45 + 12 = 57 \text{ (顆)} $$
+                </div>
+                <p><strong>答：樂兒有 9 個好朋友，糖果總共有 57 顆。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成單元，回目錄</button>
+        </div>
+
+        <div id="c9" class="exercise-section">
+            <button class="top-back-btn" onclick="returnToMenu()">⬅ 返回目錄</button>
+            <div class="section-header">第九關：雞兔同籠</div>
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 1 題</h3>
+                <p>在一個籠子裡有一些雞和兔子，雞比兔多 28 隻，它們共有 272 隻腳。請問這個籠子裡有雞多少隻？有兔子多少隻？</p>
+                <img src="chicken_rabbit.png" alt="雞兔同籠" class="content-img" onerror="this.style.display='none'">
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c9-q1-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c9-q1-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>如果雞和兔子的數量一樣多，這個題目就比較容易解決。現在雞比兔子多，那麼我們可以根據這個條件，先從總數裡減去 28 隻雞的腳數，這樣剩下的雞和兔子就「一樣多」啦！此時一隻雞配一隻兔，總共是 2 + 4 = 6 隻腳。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{減去 28 隻雞後剩下的腳數：} $$
+                $$ 272 - 2 \times 28 = 272 - 56 = 216 \text{ (隻腳)} $$
+                <br>
+                $$ \text{兔子的隻數（此時雞兔數量相等，一組 6 隻腳）：} $$
+                $$ 216 \div (2 + 4) = 216 \div 6 = 36 \text{ (隻)} $$
+                <br>
+                $$ \text{雞的隻數（把剛剛拿走的加回來）：} $$
+                $$ 36 + 28 = 64 \text{ (隻)} $$
+                </div>
+                <p><strong>答：這個籠子裡有雞 64 隻，有兔子 36 隻。</strong></p>
+            </div>
+
+            <hr class="q-separator">
+
+            <div class="card card-question">
+                <h3><span class="title-icon">📜</span>第 2 題</h3>
+                <p>少傑的農場裡養了豬和鴨子。已知鴨子比豬多 15 隻，全部動物共有 150 隻腳。請問農場裡有幾隻豬？幾隻鴨子？</p>
+            </div>
+            <div class="card intro-prompt clickable-step" data-next="c9-q2-ans">
+                <h3><span class="title-icon">💡</span>思考時間</h3>
+                <p>想出來了嗎？點擊下方按鈕解鎖分析與解答！</p>
+                <div class="click-hint">查看分析與解答 👆</div>
+            </div>
+            <div class="card final-answer hidden-card" id="c9-q2-ans">
+                <h3><span class="title-icon">🏆</span>【分析與解答】</h3>
+                <p><strong>分析：</strong>和上一題的方法一樣。鴨子有 2 隻腳，豬有 4 隻腳。為了讓豬和鴨子數量一樣多，我們先把多出來的 15 隻鴨子從總數中扣掉。</p>
+                <p><strong>解答：</strong></p>
+                <div class="math-step">
+                $$ \text{減去多出來的 15 隻鴨子後的腳數：} $$
+                $$ 150 - 15 \times 2 = 150 - 30 = 120 \text{ (隻腳)} $$
+                <br>
+                $$ \text{豬的隻數（此時豬鴨相等，一組 6 隻腳）：} $$
+                $$ 120 \div (4 + 2) = 120 \div 6 = 20 \text{ (隻)} $$
+                <br>
+                $$ \text{鴨子的隻數（把剛剛拿走的加回來）：} $$
+                $$ 20 + 15 = 35 \text{ (隻)} $$
+                </div>
+                <p><strong>答：農場裡有 20 隻豬，35 隻鴨子。</strong></p>
+            </div>
+            <button class="finish-btn" onclick="returnToMenu()">🎉 完成所有挑戰，回首頁</button>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. 初始化 LaTeX 渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+            bindUnlockEvents();
+        });
+
+        // 2. 進入專注模式：隱藏目錄，顯示指定題目
+        function startExercise(id) {
+            document.getElementById('menu-view').style.display = 'none';
+            document.querySelectorAll('.exercise-section').forEach(s => s.style.display = 'none');
+            
+            const target = document.getElementById(id);
+            if (target) {
+                target.style.display = 'block';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 3. 返回目錄模式，並「重置所有解鎖狀態」
+        function returnToMenu() {
+            document.querySelectorAll('.exercise-section').forEach(s => s.style.display = 'none');
+            document.getElementById('menu-view').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 狀態重置邏輯
+            document.querySelectorAll('.hidden-card.show').forEach(card => {
+                card.classList.remove('show');
+            });
+
+            document.querySelectorAll('.step-unlocked').forEach(step => {
+                step.classList.remove('step-unlocked');
+                step.classList.add('clickable-step');
+                const hint = step.querySelector('.click-hint');
+                if (hint) {
+                    hint.style.display = 'block';
+                }
+            });
+        }
+
+        // 4. 智慧解鎖邏輯 (非破壞性隱藏)
+        function bindUnlockEvents() {
+            const allSteps = document.querySelectorAll('.clickable-step');
+            
+            allSteps.forEach(step => {
+                step.addEventListener('click', function() {
+                    if (this.classList.contains('step-unlocked')) return;
+
+                    const nextId = this.getAttribute('data-next');
+                    const nextEl = document.getElementById(nextId);
+                    
+                    if (nextEl) {
+                        nextEl.classList.add('show');
+                        
+                        const hint = this.querySelector('.click-hint');
+                        if (hint) {
+                            hint.style.display = 'none';
+                        }
+                        
+                        this.classList.remove('clickable-step');
+                        this.classList.add('step-unlocked');
+                        
+                        setTimeout(() => {
+                            nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 200);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
